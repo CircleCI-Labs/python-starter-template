@@ -1,0 +1,17 @@
+# .circleci/team-config.yml
+# Team-specific CircleCI job/workflow overrides. The main config.yml is managed by the platform team.
+version: 2.1
+
+overrides:
+  jobs:
+    test:
+      matrix:
+        parameters:
+          python-version: ["3.9", "3.10", "3.11"]
+  workflows:
+    test_and_deploy:
+      jobs:
+        - test
+        - deploy:
+            requires:
+              - test 
