@@ -2,16 +2,91 @@
 # Team-specific CircleCI job/workflow overrides. The main config.yml is managed by the platform team.
 version: 2.1
 
-overrides:
-  jobs:
-    test:
-      matrix:
-        parameters:
-          python-version: ["3.9", "3.10", "3.11"]
-  workflows:
-    test_and_deploy:
-      jobs:
-        - test
-        - deploy:
-            requires:
-              - test 
+orbs:
+  docker: circleci/docker@2.8.2
+  python: circleci/python@3.1.0
+
+commands:
+  save_docker_image:
+    description: "Save a Docker image to a tarball."
+    parameters:
+      image_name:
+        type: string
+      tar_path:
+        type: string
+    steps:
+      - run:
+          name: Save Docker image
+          command: |
+            docker save -o <<parameters.tar_path>> <<parameters.image_name>>
+      - persist_to_workspace:
+          root: .
+          paths:
+            - <<parameters.tar_path>>
+
+  load_docker_image:
+    description: "Load a Docker image from a tarball."
+    parameters:
+      tar_path:
+        type: string
+    steps:
+      - run:
+          name: Load Docker image
+          command: |
+            docker load -i <<parameters.tar_path>>
+
+jobs:
+  build:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - docker/install-docker
+      - docker/check
+      - docker/build:
+          image: starter-template
+          tag: latest
+          extra_build_args: "--progress=plain"
+          cache_from: starter-template:latest
+      - save_docker_image:
+          image_name: starter-template:latest
+          tar_path: starter-template.tar
+      - store_artifacts:
+          path: starter-template.tar
+          destination: docker-image
+
+  test:
+    docker:
+      - image: cimg/python:3.13.4
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: pip
+      - restore_cache:
+          keys:
+            - v1-pydeps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+      - run:
+          name: Install dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip setuptools
+            pip install -r requirements.txt
+            pip install -r requirements-dev.txt
+            pip install -e .
+      - save_cache:
+          key: v1-pydeps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+          paths:
+            - ./venv
+      - run:
+          name: Run pytest with timing and junit output
+          command: |
+            . venv/bin/activate
+            mkdir -p test-results
+            pytest --junitxml=test-results/junit.xml --durations=0
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: test-results 
