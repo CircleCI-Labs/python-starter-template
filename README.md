@@ -60,12 +60,20 @@ docker build -t starter-template:latest .
 
 ## CI/CD with CircleCI
 This project uses a **centralized CircleCI configuration** managed by the platform team.
-- The main pipeline config (`config.yml`) is maintained in a separate repo and referenced by all projects.
-- This repo contains a `.circleci/team-config.yml` file, which you can use to override or extend jobs/workflows for your team's needs.
-- For more information, see [Platform Team CI/CD Docs](#).
+- The main pipeline config [`config.yml`](https://github.com/CircleCI-Labs/platform-team-configs/blob/main/config-templates/python/config.yml) is maintained in a separate repo and referenced by all projects.
+- This repo contains a [`.circleci/team-config.yml`](.circleci/team-config.yml) file, which you can use to override or extend jobs/workflows for your team's needs.
+- For more information, see [Platform Team CI/CD Docs](https://github.com/CircleCI-Labs/platform-team-configs).
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Disclaimer
+
+CircleCI Labs is a collection of solutions developed by members of CircleCI's Field Engineering team through our engagement with various customer needs. This repository is part of that collection.
+
+-   ✅ Created by engineers @ CircleCI
+-   ✅ Used by real CircleCI customers
+-   ❌ **not** officially supported by CircleCI support
 
 ## License
 See [LICENSE](LICENSE) for details.
