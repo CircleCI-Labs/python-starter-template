@@ -58,7 +58,9 @@ jobs:
 
   test:
     docker:
-      - image: cimg/python:3.13.4
+      # Exact tag from the org's approved_language_images policy. Other tags
+      # are hard-failed, which would block every newly provisioned project.
+      - image: cimg/python:3.13.18
     steps:
       - checkout
       - python/install-packages:
